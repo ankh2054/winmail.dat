@@ -1,0 +1,59 @@
+# 2.2.9: /etc/dovecot/dovecot.conf
+# OS: Linux 3.13.0-48-generic x86_64 Ubuntu 14.04.1 LTS 
+!include_try /usr/share/dovecot/protocols.d/*.protocol
+mail_location = maildir:/var/mail/%d/%u
+auth_mechanisms = plain login
+namespace inbox {
+  inbox = yes
+  location = 
+  mailbox Drafts {
+    special_use = \Drafts
+  }
+  mailbox Junk {
+    special_use = \Junk
+  }
+  mailbox Sent {
+    special_use = \Sent
+  }
+  mailbox "Sent Messages" {
+    special_use = \Sent
+  }
+  mailbox Trash {
+    special_use = \Trash
+  }
+  prefix = 
+}
+protocols = imap pop3 lmtp
+mail_privileged_group = vmail
+passdb {
+  driver = passwd-file
+  args = scheme=plain username_format=%n /etc/dovecot.passwd
+}
+ssl_cert = </etc/dovecot/dovecot.pem
+ssl_key = </etc/dovecot/private/dovecot.pem
+userdb {
+  driver = static
+  default_fields = uid=vmail gid=vmail home=/var/mail/%d/%n
+}
+service auth {
+	unix_listener /var/spool/postfix/private/auth {
+       		mode = 0666
+	        user = postfix
+	        group = postfix
+	}        
+}
+
+service lmtp {
+   unix_listener /var/spool/postfix/private/dovecot-lmtp {
+     mode = 0600
+     user = postfix
+     group = postfix
+   }
+}
+service auth-worker {
+  user = vmail
+}
+verbose_proctitle = yes
+log_path = /var/log/dovecot.log
+info_log_path = /var/log/dovecot-info.log
+mail_debug = yes
